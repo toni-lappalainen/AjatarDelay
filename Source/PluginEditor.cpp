@@ -27,6 +27,7 @@ AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAud
 	delayTimeSlider.setValue(0.5f);
 	addAndMakeVisible(&delayTimeSlider);
 
+	
 	feedbackSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, FEEDBACK_ID, feedbackSlider);
 	feedbackSlider.setBounds(100, 0, 100, 100);
 	feedbackSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
@@ -37,15 +38,17 @@ AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAud
 
 
 	smoothSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, SMOOTH_ID, smoothSlider);
-	smoothSlider.setBounds(300, 0, 100, 100);
+	smoothSlider.setBounds(200, 0, 100, 100);
 	smoothSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
 	smoothSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 25);
-	smoothSlider.setRange(0.001f, 0.02f);
+	smoothSlider.textFromValueFunction = nullptr;
+	smoothSlider.setRange(0.001f, 0.01f, 0.001f);
 	smoothSlider.setValue(0.006f);
+	smoothSlider.setNumDecimalPlacesToDisplay(3);
 	addAndMakeVisible(&smoothSlider);
 
 	dryWetSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, DRYWET_ID, dryWetSlider);
-	dryWetSlider.setBounds(200, 0, 100, 100);
+	dryWetSlider.setBounds(300, 0, 100, 100);
 	dryWetSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
 	dryWetSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 25);
 	dryWetSlider.setRange(0.0f, 1.0f);

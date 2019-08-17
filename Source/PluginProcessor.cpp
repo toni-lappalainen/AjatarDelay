@@ -36,7 +36,7 @@ AudioProcessorValueTreeState::ParameterLayout AjatarDelayAudioProcessor::createP
 	std::vector <std::unique_ptr<RangedAudioParameter>> params;
 	auto delayTimeParam = std::make_unique<AudioParameterFloat>(DELAYTIME_ID, DELAYTIME_NAME, 0.01f, 2.0f, 0.5f);
 	auto feedbackParam = std::make_unique<AudioParameterFloat>(FEEDBACK_ID, FEEDBACK_NAME, 0.0f, 0.98f, 0.6f);
-	auto smoothParam = std::make_unique<AudioParameterFloat>(SMOOTH_ID, SMOOTH_NAME, 0.001f, 0.02f, 0.006f);
+	auto smoothParam = std::make_unique<AudioParameterFloat>(SMOOTH_ID, SMOOTH_NAME, 0.001f, 0.01f, 0.006f);
 	auto dryWetParam = std::make_unique<AudioParameterFloat>(DRYWET_ID, DRYWET_NAME, 0.0f, 1.0f, 0.5f);
 
 	params.push_back(std::move(delayTimeParam));
