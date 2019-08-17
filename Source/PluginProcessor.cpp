@@ -24,14 +24,14 @@ AjatarDelayAudioProcessor::AjatarDelayAudioProcessor()
                        )
 #endif
 {
-	mDelayBufferLeft = nullptr;
-	mDelayBufferRight = nullptr;
+//	mDelayBufferLeft = nullptr;
+	//mDelayBufferRight = nullptr;
 }
 
 AjatarDelayAudioProcessor::~AjatarDelayAudioProcessor()
 {
-
 	//ensure that buffers are nullptr when starting
+	/*
 	if (mDelayBufferLeft != nullptr)
 	{
 		delete[] mDelayBufferLeft;
@@ -42,6 +42,7 @@ AjatarDelayAudioProcessor::~AjatarDelayAudioProcessor()
 		delete[] mDelayBufferRight;
 		mDelayBufferRight = nullptr;
 	}
+	*/
 }
 
 
@@ -50,7 +51,10 @@ void AjatarDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 {
 	mDelayBufferLength = 2.0 * (samplesPerBlock + sampleRate);
 	
+	mDelayTimeSmoothed = 0.3f;
+	mDelayTimeInSamples = sampleRate * mDelayTimeSmoothed;
 	//set delay buffers as float arrays and fill the memories with zeroes
+		/*
 	if (mDelayBufferLeft == nullptr)
 	{
 		mDelayBufferLeft = new float[mDelayBufferLength];
@@ -62,8 +66,10 @@ void AjatarDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 		mDelayBufferRight = new float[mDelayBufferLength];
 	}
 	zeromem(mDelayBufferRight, mDelayBufferLength * sizeof(float));
+	*/
 
-	mDelayTimeSmoothed = 300.0f;
+	mDelayBufferLeft.reset(new float[mDelayBufferLength]);
+	mDelayBufferRight.reset(new float[mDelayBufferLength]);
 }
 
 void AjatarDelayAudioProcessor::releaseResources()
@@ -123,6 +129,7 @@ void AjatarDelayAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
 
 		// set the delaybuffers at delayWritePosition to mainBuffers at [sample] location
 		mDelayBufferLeft[mDelayBufferWritePosition] = mainBufferLeftChannel[sample];
+		mDelayBufferRight[mDelayBufferWritePosition] = mainBufferRightChannel[sample];
 
 		// set delay read position to delay write position - delay time in samples
 		// and check if delay read position is smaller than zero
@@ -144,8 +151,8 @@ void AjatarDelayAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
 		if (readPosition_x1 >= mDelayBufferLength)
 			readPosition_x1 -= mDelayBufferLength;
 
-		float lerpedSampleLeft = lerp(mDelayBufferLeft[readPosition_x0], mDelayBufferLeft[readPosition_x1], readPositionFloat);
-		float lerpedSampleRight = lerp(mDelayBufferRight[readPosition_x0], mDelayBufferRight[readPosition_x1], readPositionFloat);
+		float lerpedSampleLeft = mDelayBufferLeft[readPosition_x0];//lerp(mDelayBufferLeft[readPosition_x0], mDelayBufferLeft[readPosition_x1], readPositionFloat);
+		float lerpedSampleRight = mDelayBufferRight[readPosition_x0];//lerp(mDelayBufferRight[readPosition_x0], mDelayBufferRight[readPosition_x1], readPositionFloat);
 
 		// set the feedbacks to interpolated float * feedbackValue
 		mFeedBackLeft = lerpedSampleLeft * feedbackValue;

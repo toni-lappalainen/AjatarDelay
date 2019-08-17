@@ -58,8 +58,8 @@ public:
 
 private:
 
-	float* mDelayBufferLeft;
-	float* mDelayBufferRight;
+	std::unique_ptr<float[]> mDelayBufferLeft;
+	std::unique_ptr<float[]> mDelayBufferRight;
 
 	float mDelayReadPosition{ 0.0f };
 	float mDelayTimeInSamples{ 0.0f };
