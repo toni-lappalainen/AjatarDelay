@@ -11,6 +11,14 @@
 #pragma once
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#define DELAYTIME_ID "delaytime"
+#define DELAYTIME_NAME "DelayTime"
+#define FEEDBACK_ID "feedback"
+#define FEEDBACK_NAME "Feedback"
+#define DRYWET_ID "drywet"
+#define DRYWET_NAME "DryWet"
+#define SMOOTH_ID "smooth"
+#define SMOOTH_NAME "Smooth"
 
 //==============================================================================
 /**
@@ -54,12 +62,16 @@ public:
     //==============================================================================
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+
+//	AudioProcessorValueTreeState treeState;
+//	AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+
 	float lerp(float v0, float v1, float t);
 
 private:
 
-	float* mDelayBufferLeft;
-	float* mDelayBufferRight;
+	std::unique_ptr<float[]> mDelayBufferLeft;
+	std::unique_ptr<float[]> mDelayBufferRight;
 
 	float mDelayReadPosition{ 0.0f };
 	float mDelayTimeInSamples{ 0.0f };

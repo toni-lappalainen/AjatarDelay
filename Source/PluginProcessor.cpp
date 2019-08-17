@@ -22,19 +22,21 @@ AjatarDelayAudioProcessor::AjatarDelayAudioProcessor()
                        .withOutput ("Output", AudioChannelSet::stereo(), true)
                      #endif
                        )
+	//treeState(*this, nullptr, "PARAMETER", createParameterLayout())
 #endif
 {
-	mDelayBufferLeft = nullptr;
-	mDelayBufferRight = nullptr;
+//	mDelayBufferLeft = nullptr;
+//	mDelayBufferRight = nullptr;
 }
+
 
 AjatarDelayAudioProcessor::~AjatarDelayAudioProcessor()
 {
-
+	/*
 	//ensure that buffers are nullptr when starting
 	if (mDelayBufferLeft != nullptr)
 	{
-		delete[] mDelayBufferLeft;
+		delete mDelayBufferLeft;
 		mDelayBufferLeft = nullptr;
 	}
 	if (mDelayBufferRight != nullptr)
@@ -42,28 +44,49 @@ AjatarDelayAudioProcessor::~AjatarDelayAudioProcessor()
 		delete[] mDelayBufferRight;
 		mDelayBufferRight = nullptr;
 	}
+	*/
 }
+/*
+AudioProcessorValueTreeState::ParameterLayout AjatarDelayAudioProcessor::createParameterLayout()
+{
+	std::vector <std::unique_ptr<RangedAudioParameter>> params;
+
+	auto delayTimeParam = std::make_unique<AudioParameterFloat>(DELAYTIME_ID, DELAYTIME_NAME, 0.01f, 2.0f, 0.5f);
+	auto feedbackParam = std::make_unique<AudioParameterFloat>(FEEDBACK_ID, FEEDBACK_NAME, 0.0f, 0.98f, 0.6f);
+	auto smoothParam = std::make_unique<AudioParameterFloat>(SMOOTH_ID, SMOOTH_NAME, 0.001f, 0.02f, 0.006f);
+	auto dryWetParam = std::make_unique<AudioParameterFloat>(DRYWET_ID, DRYWET_NAME, 0.0f, 1.0f, 0.5f);
+
+	params.push_back(std::move(delayTimeParam));
+	params.push_back(std::move(feedbackParam));
+	params.push_back(std::move(smoothParam));
+	params.push_back(std::move(dryWetParam));
+
+	return { params.begin(), params.end() };
+}
+*/
 
 
 //==============================================================================
 void AjatarDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
 	mDelayBufferLength = 2.0 * (samplesPerBlock + sampleRate);
-	
+
+	mDelayTimeInSamples = sampleRate * 0.5f;
+
 	//set delay buffers as float arrays and fill the memories with zeroes
-	if (mDelayBufferLeft == nullptr)
-	{
-		mDelayBufferLeft = new float[mDelayBufferLength];
-	}
-	zeromem(mDelayBufferLeft, mDelayBufferLength * sizeof(float));
+//	if (mDelayBufferLeft == nullptr)
+	//{
+		mDelayBufferLeft.reset(new float[mDelayTimeInSamples]);
+//	}
+//	zeromem(mDelayBufferLeft, mDelayBufferLength * sizeof(float));
 
-	if (mDelayBufferRight == nullptr)
-	{
-		mDelayBufferRight = new float[mDelayBufferLength];
-	}
-	zeromem(mDelayBufferRight, mDelayBufferLength * sizeof(float));
+	//if (mDelayBufferRight == nullptr)
+	//{
+		mDelayBufferRight.reset(new float[mDelayTimeInSamples]);
+//	}
+	//zeromem(mDelayBufferRight, mDelayBufferLength * sizeof(float));
 
-	mDelayTimeSmoothed = 300.0f;
+	mDelayTimeSmoothed = 300.0f;//*treeState.getRawParameterValue(DELAYTIME_ID);
 }
 
 void AjatarDelayAudioProcessor::releaseResources()
@@ -109,11 +132,17 @@ void AjatarDelayAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
 	float* mainBufferLeftChannel = buffer.getWritePointer(0);
 	float* mainBufferRightChannel = buffer.getWritePointer(1);
 
-	float smoothValue = 0.006f;
-	float delayTimeValue = 0.5f;
-	float feedbackValue = 0.9f;
+	//float* delayTimeValue = treeState.getRawParameterValue(DELAYTIME_ID);
+	//float* feedbackValue = treeState.getRawParameterValue(FEEDBACK_ID);
+	//float* smoothValue = treeState.getRawParameterValue(SMOOTH_ID);
+	//float* dryWetValue = treeState.getRawParameterValue(DRYWET_ID);
 
-    for (int sample = 0; sample < buffer.getNumSamples(); sample++)
+	float delayTimeValue = 0.5f;
+	float feedbackValue = 0.97f;
+	float smoothValue = 0.006f;
+	float dryWetValue = 0.5f;
+    
+	for (int sample = 0; sample < buffer.getNumSamples(); sample++)
     {
 		// calculate the smoothed delaytimes. 
 		mDelayTimeSmoothed = mDelayTimeSmoothed - smoothValue * (mDelayTimeSmoothed - delayTimeValue);
@@ -123,12 +152,13 @@ void AjatarDelayAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
 
 		// set the delaybuffers at delayWritePosition to mainBuffers at [sample] location
 		mDelayBufferLeft[mDelayBufferWritePosition] = mainBufferLeftChannel[sample];
+		mDelayBufferRight[mDelayBufferWritePosition] = mainBufferRightChannel[sample];
 
 		// set delay read position to delay write position - delay time in samples
 		// and check if delay read position is smaller than zero
 		// if it is, add delaybuffer length to it.
 		mDelayReadPosition = mDelayBufferWritePosition - mDelayTimeInSamples;
-		if (mDelayReadPosition < 0)
+		if (mDelayReadPosition < 0.0f)
 			mDelayReadPosition += mDelayBufferLength;
 
 		// do the linear interpolation calculations here
@@ -136,8 +166,8 @@ void AjatarDelayAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
 		// subtract x from delay read position to get read position float.
 		// check if x1 is >= delaybuffer length, if so, decrease the length from it
 		// then create new floats by doing the lerp(dBufferL[x],dBufferR[x1], rposfloat)
-
-		int readPosition_x0 = static_cast<int>(mDelayReadPosition);
+		
+		int readPosition_x0 = (int)mDelayReadPosition;
 		int readPosition_x1 = readPosition_x0 + 1;
 		float readPositionFloat = mDelayReadPosition - readPosition_x0;
 
@@ -153,7 +183,7 @@ void AjatarDelayAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
 		// advance the delay write position
 		mDelayBufferWritePosition++;
 		//set the buffer samples to current sample * (1 - *drywetValue) + lerp * *dryWetValue
-		buffer.setSample(0, sample, buffer.getSample(0, sample) * (1 - 0.5f) + lerpedSampleLeft * 0.5f);
+		buffer.setSample(0, sample, buffer.getSample(0, sample) * (1 - dryWetValue) + lerpedSampleLeft * dryWetValue);
 		buffer.setSample(1, sample, buffer.getSample(1, sample) * (1 - 0.5f) + lerpedSampleRight * 0.5f);
 		//Check if the delay buffer position is >= than the lenght of the delay buffer, if so, set it to zero so it wraps to beginning.
 		if (mDelayBufferWritePosition >= mDelayBufferLength)
