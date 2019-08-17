@@ -140,14 +140,25 @@ void AjatarDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuf
 
 		int readPosition_x0 = static_cast<int>(mDelayReadPosition);
 		int readPosition_x1 = readPosition_x0 + 1;
+		int readPosition_x2 = readPosition_x0 - 1;
+		int readPosition_x3 = readPosition_x1 + 1;
+
 		float readPositionFloat = mDelayReadPosition - readPosition_x0;
 
 		if (readPosition_x1 >= mDelayBufferLength)
 			readPosition_x1 -= mDelayBufferLength;
+		if (readPosition_x2 < 0)
+			readPosition_x2 += mDelayBufferLength;
+		if (readPosition_x3 >= mDelayBufferLength)
+			readPosition_x3 -= mDelayBufferLength;
 
-		float lerpedSampleLeft = lerp(mDelayBufferLeft[readPosition_x0], mDelayBufferLeft[readPosition_x1], readPositionFloat);
-		float lerpedSampleRight = lerp(mDelayBufferRight[readPosition_x0], mDelayBufferRight[readPosition_x1], readPositionFloat);
+	//	float lerpedSampleLeft = cosineInterpolate(mDelayBufferLeft[readPosition_x0], mDelayBufferLeft[readPosition_x1], readPositionFloat);
+	//	float lerpedSampleRight = cosineInterpolate(mDelayBufferRight[readPosition_x0], mDelayBufferRight[readPosition_x1], readPositionFloat);
 
+		float lerpedSampleLeft = cubicInterpolate(mDelayBufferLeft[readPosition_x2], mDelayBufferLeft[readPosition_x0], mDelayBufferLeft[readPosition_x1], mDelayBufferLeft[readPosition_x3], readPositionFloat);
+		float lerpedSampleRight = cubicInterpolate(mDelayBufferRight[readPosition_x2], mDelayBufferRight[readPosition_x0], mDelayBufferRight[readPosition_x1], mDelayBufferRight[readPosition_x3], readPositionFloat);
+
+		
 		// set the feedbacks to interpolated float * feedbackValue
 		mFeedBackLeft = lerpedSampleLeft * feedbackValue;
 		mFeedBackRight = lerpedSampleRight * feedbackValue;
@@ -165,6 +176,28 @@ void AjatarDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuf
 float AjatarDelayAudioProcessor::lerp(float x0, float x1, float phase) {
 	return (1 - phase) * x0 + phase * x1;
 }
+
+float AjatarDelayAudioProcessor::cosineInterpolate(float x0, float x1, float phase)
+{
+	float phase2;
+
+	phase2 = (1 - cos(phase * M_PI)) / 2;
+	return(x0 * (1 - phase2) + x1 * phase2);
+}
+
+float AjatarDelayAudioProcessor::cubicInterpolate(float x0, float x1, float x2, float x3, float mu)
+{
+	float a0, a1, a2, a3, mu2;
+
+	mu2 = mu * mu;
+	a0 = x3 - x2 - x0 + x1;
+	a1 = x0 - x1 - a0;
+	a2 = x2 - x0;
+	a3 = x1;
+
+	return(a0 * mu * mu2 + a1 * mu2 + a2 * mu + a3);
+}
+
 
 //==============================================================================
 bool AjatarDelayAudioProcessor::hasEditor() const

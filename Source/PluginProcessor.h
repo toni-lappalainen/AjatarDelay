@@ -12,6 +12,8 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+#define M_PI 3.14159265f
+
 #define DELAYTIME_ID "delaytime"
 #define DELAYTIME_NAME "DelayTime"
 #define FEEDBACK_ID "feedback"
@@ -63,7 +65,13 @@ public:
     //==============================================================================
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+
 	float lerp(float v0, float v1, float t);
+
+	float cosineInterpolate(float x0, float x1, float phase);
+
+	float cubicInterpolate(float x0, float x1, float x2, float x3, float mu);
+
 
 	AudioProcessorValueTreeState treeState;
 	AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
@@ -72,8 +80,6 @@ private:
 
 	std::unique_ptr<float[]> mDelayBufferLeft;
 	std::unique_ptr<float[]> mDelayBufferRight;
-//	float* mDelayBufferLeft;
-//	float* mDelayBufferRight;
 
 	float mDelayReadPosition{ 0.0f };
 	float mDelayTimeInSamples{ 0.0f };
