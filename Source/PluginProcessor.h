@@ -22,6 +22,8 @@
 #define DRYWET_NAME "DryWet"
 #define SMOOTH_ID "smooth"
 #define SMOOTH_NAME "Smooth"
+#define FILTERFREQ_ID "filterfreq"
+#define  FILTERFREQ_NAME "FIlterFreq"
 
 //==============================================================================
 /**
@@ -66,12 +68,9 @@ public:
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-	float lerp(float v0, float v1, float t);
+	float cubicInterpolate(float buffer[], float readPosition);
 
-	float cosineInterpolate(float x0, float x1, float phase);
-
-	float cubicInterpolate(float x0, float x1, float x2, float x3, float mu);
-
+	void writeDelay(AudioBuffer<float>& buffer, int sample);
 
 	AudioProcessorValueTreeState treeState;
 	AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
@@ -90,6 +89,17 @@ private:
 
 	int mDelayBufferWritePosition{ 0 };
 	int mDelayBufferLength{ 0 };
+
+	AudioPlayHead* mPlayHead;
+	AudioPlayHead::CurrentPositionInfo mCurrentPositionInfo;
+
+	float mBPM{120.0f};
+
+	// filters
+	std::unique_ptr<IIRFilter> mFilterHPLeft;
+	std::unique_ptr<IIRFilter> mFilterHPRight;
+
+	int mFilterHPFreq{ 500 };
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AjatarDelayAudioProcessor)
