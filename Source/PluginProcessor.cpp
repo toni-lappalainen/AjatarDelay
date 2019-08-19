@@ -35,12 +35,14 @@ AudioProcessorValueTreeState::ParameterLayout AjatarDelayAudioProcessor::createP
 {
 	std::vector <std::unique_ptr<RangedAudioParameter>> params;
 	auto delayTimeParam = std::make_unique<AudioParameterFloat>(DELAYTIME_ID, DELAYTIME_NAME, 0.01f, 2.0f, 0.5f);
+	auto delayTimeNoteParam = std::make_unique<AudioParameterInt>(DELAYTIMENOTE_ID, DELAYTIMENOTE_NAME, 0, 7, 3);
 	auto feedbackParam = std::make_unique<AudioParameterFloat>(FEEDBACK_ID, FEEDBACK_NAME, 0.0f, 0.98f, 0.6f);
 	auto smoothParam = std::make_unique<AudioParameterFloat>(SMOOTH_ID, SMOOTH_NAME, 0.001f, 0.01f, 0.006f);
 	auto dryWetParam = std::make_unique<AudioParameterFloat>(DRYWET_ID, DRYWET_NAME, 0.0f, 1.0f, 0.5f);
 	auto filterFreqParam = std::make_unique<AudioParameterInt>(FILTERFREQ_ID, FILTERFREQ_NAME, 50, 12000, 500);
 
 	params.push_back(std::move(delayTimeParam));
+	params.push_back(std::move(delayTimeNoteParam));
 	params.push_back(std::move(feedbackParam));
 	params.push_back(std::move(smoothParam));
 	params.push_back(std::move(dryWetParam));
@@ -52,6 +54,8 @@ AudioProcessorValueTreeState::ParameterLayout AjatarDelayAudioProcessor::createP
 //==============================================================================
 void AjatarDelayAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
+	delayTimeSync = false;
+
 	mDelayBufferLength = 2.0 * (samplesPerBlock + sampleRate);
 
 	mDelayTimeSmoothed =  *treeState.getRawParameterValue(DELAYTIME_ID);
@@ -83,23 +87,57 @@ void AjatarDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuf
 
 	mPlayHead = this->getPlayHead();
 	mPlayHead->getCurrentPosition(mCurrentPositionInfo);
-//	mBPM = mCurrentPositionInfo.bpm;
-
-	for (int sample = 0; sample < buffer.getNumSamples(); sample++)
+	mBPM = mCurrentPositionInfo.bpm;	//(60000.0f / 120.0f) / 1000.0f;
+	float delayTimeValue;
+	if (delayTimeSync)
 	{
-		writeDelay(buffer, sample);
-	}
-}
+		int noteValue = *treeState.getRawParameterValue(DELAYTIMENOTE_ID);
+		delayTimeValue = 60000.0f / mBPM / 250.0f;
 
-void AjatarDelayAudioProcessor::writeDelay(AudioBuffer<float>& buffer, int sample)
-{
-	//(60000.0f / 120.0f) / 1000.0f;
-	float delayTimeValue = *treeState.getRawParameterValue(DELAYTIME_ID);
+		switch (noteValue) {
+		case 0:
+			break;
+		case 1:
+			delayTimeValue /= 2;
+			break;
+		case 2:
+			delayTimeValue /= 3;
+			break;
+		case 3:
+			delayTimeValue /= 4;
+			break;
+		case 4:
+			delayTimeValue /= 5;
+			break;
+		case 5:
+			delayTimeValue /= 6;
+			break;
+		case 6:
+			delayTimeValue /= 8;
+			break;
+		case 7:
+			delayTimeValue /= 16;
+			break;
+		}
+	}
+	else {
+		delayTimeValue = *treeState.getRawParameterValue(DELAYTIME_ID);
+	}
 	float smoothValue = *treeState.getRawParameterValue(SMOOTH_ID);
 	float feedbackValue = *treeState.getRawParameterValue(FEEDBACK_ID);
 	float dryWetValue = *treeState.getRawParameterValue(DRYWET_ID);
 	mFilterHPLeft->setCoefficients(IIRCoefficients::makeHighPass(getSampleRate(), *treeState.getRawParameterValue(FILTERFREQ_ID), 1.0));
 	mFilterHPRight->setCoefficients(IIRCoefficients::makeHighPass(getSampleRate(), *treeState.getRawParameterValue(FILTERFREQ_ID), 1.0));
+
+
+	for (int sample = 0; sample < buffer.getNumSamples(); sample++)
+	{
+		writeDelay(buffer, sample, delayTimeValue, smoothValue, feedbackValue, dryWetValue);
+	}
+}
+
+void AjatarDelayAudioProcessor::writeDelay(AudioBuffer<float>& buffer, int sample, float delayTimeValue, float smoothValue, float feedbackValue, float dryWetValue)
+{
 
 	//get the float pointers to both channels of buffer
 	const float* mainBufferLeftChannel = buffer.getReadPointer(0);

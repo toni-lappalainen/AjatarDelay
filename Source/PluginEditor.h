@@ -86,11 +86,16 @@ public:
 		g.setColour(backgroundColour);
 		g.fillRect(buttonArea);
 	}
-
-
 };
 
-
+class Slider_reverse : public Slider
+{
+public:
+	Slider_reverse() {};
+	~Slider_reverse() {};
+	double proportionOfLengthToValue(double proportion) override { return Slider::proportionOfLengthToValue(1.0f - proportion); };
+	double valueToProportionOfLength(double value) override { return 1.0f - (Slider::valueToProportionOfLength(value)); };
+};
 
 class AjatarDelayAudioProcessorEditor  : public AudioProcessorEditor
 {
@@ -105,13 +110,19 @@ public:
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
+
+	void changeDelayTimeMode();
+
     AjatarDelayAudioProcessor& processor;
 
 	DelayLookAndFeel delayLookAndFeel;
 
+	TextButton tempoButton;
+
 	Slider delayTimeSlider;
+	Slider delayTimeNoteSlider;
 	Slider feedbackSlider;
-	Slider smoothSlider;
+	Slider_reverse smoothSlider;
 	Slider dryWetSlider;
 	Slider filterFreqSlider;
 
@@ -125,6 +136,7 @@ private:
 
 public:
 	std::unique_ptr <AudioProcessorValueTreeState::SliderAttachment> delayTimeSliderValue;
+	std::unique_ptr <AudioProcessorValueTreeState::SliderAttachment> delayTimeNoteSliderValue;
 	std::unique_ptr <AudioProcessorValueTreeState::SliderAttachment> feedbackSliderValue;
 	std::unique_ptr <AudioProcessorValueTreeState::SliderAttachment> smoothSliderValue;
 	std::unique_ptr <AudioProcessorValueTreeState::SliderAttachment> dryWetSliderValue;

@@ -16,6 +16,9 @@
 
 #define DELAYTIME_ID "delaytime"
 #define DELAYTIME_NAME "DelayTime"
+#define DELAYTIMENOTE_ID "delaytimenote"
+#define DELAYTIMENOTE_NAME "DelayTimeNote"
+
 #define FEEDBACK_ID "feedback"
 #define FEEDBACK_NAME "Feedback"
 #define DRYWET_ID "drywet"
@@ -70,7 +73,7 @@ public:
 
 	float cubicInterpolate(float buffer[], float readPosition);
 
-	void writeDelay(AudioBuffer<float>& buffer, int sample);
+	void writeDelay(AudioBuffer<float>& buffer, int sample, float delayTimeValue, float smoothValue, float feedbackValue, float dryWetValue);
 
 	AudioProcessorValueTreeState treeState;
 	AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
@@ -100,6 +103,11 @@ private:
 	std::unique_ptr<IIRFilter> mFilterHPRight;
 
 	int mFilterHPFreq{ 500 };
+
+
+public:
+
+	static bool delayTimeSync;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AjatarDelayAudioProcessor)

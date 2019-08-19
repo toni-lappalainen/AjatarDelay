@@ -11,6 +11,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+bool AjatarDelayAudioProcessor::delayTimeSync;
 
 //==============================================================================
 AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAudioProcessor& p)
@@ -18,7 +19,7 @@ AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAud
 {
 	setLookAndFeel(&delayLookAndFeel);
 	//setLookAndFeel(nullptr);
-
+	
 
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -26,20 +27,42 @@ AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAud
 
 	delayLookAndFeel.setColour(Slider::textBoxTextColourId, Colours::red);
 
+
 	delayTimeSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, DELAYTIME_ID, delayTimeSlider);
 	delayTimeSlider.setBounds(0, 30, 100, 100);
 	delayTimeSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
 	delayTimeSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 20);
-	delayTimeSlider.setTextValueSuffix("s");
 	delayTimeSlider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);	
 	delayTimeSlider.setColour(Slider::textBoxTextColourId, Colour (0xFF2d4924));
 	delayTimeSlider.setRange(0.01f, 2.0f);
 	delayTimeSlider.setValue(0.5f);
+	delayTimeSlider.setNumDecimalPlacesToDisplay(1);
+	delayTimeSlider.textFromValueFunction = [](float value)
+	{
+		int time = (value * (1000.0f));	
+		return juce::String(time) + "ms";
+	};
 	addAndMakeVisible(&delayTimeSlider);
 	addAndMakeVisible(delayTimeLabel);
 	delayTimeLabel.setJustificationType(Justification(36));
 	delayTimeLabel.setText("Delay Time", dontSendNotification);
 	delayTimeLabel.attachToComponent(&delayTimeSlider, false); // [4]
+
+	// tempo synced time
+	delayTimeNoteSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, DELAYTIMENOTE_ID, delayTimeNoteSlider);
+	delayTimeNoteSlider.setBounds(0, 30, 100, 100);
+	delayTimeNoteSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
+	delayTimeNoteSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 20);
+	delayTimeNoteSlider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);	
+	delayTimeNoteSlider.setColour(Slider::textBoxTextColourId, Colour (0xFF2d4924));
+	delayTimeNoteSlider.setRange(0, 7);
+	delayTimeNoteSlider.setValue(3);
+	addAndMakeVisible(&delayTimeNoteSlider);
+	delayTimeNoteSlider.setVisible(false);
+//	addAndMakeVisible(delayTimeNoteLabel);
+//	delayTimeNoteLabel.setJustificationType(Justification(36));
+//	delayTimeNoteLabel.setText("Delay Time", dontSendNotification);
+//	delayTimeLabel.attachToComponent(&delayTimeSlider, false); // [4]
 
 	feedbackSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, FEEDBACK_ID, feedbackSlider);
 	feedbackSlider.setBounds(100, 70, 100, 100);
@@ -49,6 +72,11 @@ AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAud
 	feedbackSlider.setColour(Slider::textBoxTextColourId, Colour (0xFF2d4924));
 	feedbackSlider.setRange(0.0f, 0.98f);
 	feedbackSlider.setValue(0.3f);
+	feedbackSlider.textFromValueFunction = [](float value)
+	{
+		int feedback = (value * (100.0f));
+		return juce::String(feedback) + "%";
+	}; 
 	addAndMakeVisible(&feedbackSlider);
 	addAndMakeVisible(feedbackLabel);
 	feedbackLabel.setJustificationType(Justification(36));
@@ -64,7 +92,12 @@ AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAud
 	smoothSlider.textFromValueFunction = nullptr;
 	smoothSlider.setRange(0.001f, 0.01f, 0.001f);
 	smoothSlider.setValue(0.006f);
-	smoothSlider.setNumDecimalPlacesToDisplay(3);
+	smoothSlider.textFromValueFunction = [](float value)
+	{
+		int smooth = (value * (1000.0f));
+		smooth = 11 - smooth;
+		return juce::String(smooth);
+	}; 
 	addAndMakeVisible(&smoothSlider);
 	addAndMakeVisible(smoothLabel);
 	smoothLabel.setText("Smooth", dontSendNotification);
@@ -95,6 +128,11 @@ AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAud
 	dryWetSlider.setColour(Slider::textBoxTextColourId, Colour (0xFF2d4924));
 	dryWetSlider.setRange(0.0f, 1.0f);
 	dryWetSlider.setValue(0.5f);
+	dryWetSlider.textFromValueFunction = [](float value)
+	{
+		int dryWet = (value * (100.0f));
+		return juce::String(dryWet) + "%";
+	};
 	addAndMakeVisible(&dryWetSlider);
 	addAndMakeVisible(dryWetLabel);
 	dryWetLabel.setJustificationType(Justification(36));
@@ -103,6 +141,27 @@ AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAud
 
 	getLookAndFeel().setColour(Label::textColourId, Colour(0xFF2d4924));
 
+	addAndMakeVisible(tempoButton);
+	tempoButton.onClick = [this] { changeDelayTimeMode(); };
+	tempoButton.setBounds(10, 130, 100, 30);
+	tempoButton.setButtonText("time mode");
+
+}
+
+void AjatarDelayAudioProcessorEditor::changeDelayTimeMode()
+{
+	bool& delayTimeSync = AjatarDelayAudioProcessor::delayTimeSync;
+	delayTimeSync = !delayTimeSync;
+
+	if (delayTimeSync)
+	{
+		delayTimeSlider.setVisible(false);
+		delayTimeNoteSlider.setVisible(true);
+	}
+	else {
+		delayTimeSlider.setVisible(true);
+		delayTimeNoteSlider.setVisible(false);
+	}
 
 }
 

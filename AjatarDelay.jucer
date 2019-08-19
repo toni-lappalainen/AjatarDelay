@@ -17,7 +17,7 @@
   <EXPORTFORMATS>
     <VS2019 targetFolder="Builds/VisualStudio2019">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION name="Debug" isDebug="1" linkTimeOptimisation="0"/>
         <CONFIGURATION isDebug="1" name="Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
