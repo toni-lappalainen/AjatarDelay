@@ -41,11 +41,11 @@ public:
 
 		// outline #b8ccc6
 		g.setColour(Colour (0xff2d4924));
-		g.drawEllipse(rx, ry, rw, rw, 1.0f);
+		g.drawEllipse(rx, ry, rw, rw, 4.0f);
 
 		Path p;
-		auto pointerLength = radius * 0.33f;
-		auto pointerThickness = 2.0f;
+		auto pointerLength = radius * 0.56f;
+		auto pointerThickness = 3.0f;
 		p.addRectangle(-pointerThickness * 0.5f, -radius, pointerThickness, pointerLength);
 		p.applyTransform(AffineTransform::rotation(angle).translated(centreX, centreY));
 		// pointer
@@ -122,23 +122,25 @@ private:
 	Slider delayTimeSlider;
 	Slider delayTimeNoteSlider;
 	Slider feedbackSlider;
-	Slider_reverse smoothSlider;
+	Slider filterAttackSlider;
 	Slider dryWetSlider;
 	Slider filterFreqSlider;
 
 	Label delayTimeLabel;
 	Label feedbackLabel;
-	Label smoothLabel;
+	Label filterAttackLabel;
 	Label dryWetLabel;
 	Label filterFreqLabel;
 
 	Label ajatarLabel;
 
+	bool started{ false };
+
 public:
 	std::unique_ptr <AudioProcessorValueTreeState::SliderAttachment> delayTimeSliderValue;
 	std::unique_ptr <AudioProcessorValueTreeState::SliderAttachment> delayTimeNoteSliderValue;
 	std::unique_ptr <AudioProcessorValueTreeState::SliderAttachment> feedbackSliderValue;
-	std::unique_ptr <AudioProcessorValueTreeState::SliderAttachment> smoothSliderValue;
+	std::unique_ptr <AudioProcessorValueTreeState::SliderAttachment> filterAttackSliderValue;
 	std::unique_ptr <AudioProcessorValueTreeState::SliderAttachment> dryWetSliderValue;
 	std::unique_ptr <AudioProcessorValueTreeState::SliderAttachment> filterFreqSliderValue;
 

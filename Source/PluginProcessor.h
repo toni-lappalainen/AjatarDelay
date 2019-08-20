@@ -23,8 +23,8 @@
 #define FEEDBACK_NAME "Feedback"
 #define DRYWET_ID "drywet"
 #define DRYWET_NAME "DryWet"
-#define SMOOTH_ID "smooth"
-#define SMOOTH_NAME "Smooth"
+#define FILTERATTACK_ID "smooth"
+#define FILTERATTACK_NAME "Smooth"
 #define FILTERFREQ_ID "filterfreq"
 #define  FILTERFREQ_NAME "FIlterFreq"
 
@@ -72,6 +72,8 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 	float cubicInterpolate(float buffer[], float readPosition);
+
+	float calculateDelayTime();
 
 	void writeDelay(AudioBuffer<float>& buffer, int sample, float delayTimeValue, float smoothValue, float feedbackValue, float dryWetValue);
 

@@ -18,126 +18,165 @@ AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAud
     : AudioProcessorEditor (&p), processor (p)
 {
 	setLookAndFeel(&delayLookAndFeel);
-	//setLookAndFeel(nullptr);
-	
 
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 	setSize(500, 170);
 
-	delayLookAndFeel.setColour(Slider::textBoxTextColourId, Colours::red);
-
-
 	delayTimeSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, DELAYTIME_ID, delayTimeSlider);
-	delayTimeSlider.setBounds(0, 30, 100, 100);
+	delayTimeSlider.setBounds(0, 30, 90, 90);
 	delayTimeSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
 	delayTimeSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 20);
 	delayTimeSlider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);	
 	delayTimeSlider.setColour(Slider::textBoxTextColourId, Colour (0xFF2d4924));
-	delayTimeSlider.setRange(0.01f, 2.0f);
-	delayTimeSlider.setValue(0.5f);
-	delayTimeSlider.setNumDecimalPlacesToDisplay(1);
 	delayTimeSlider.textFromValueFunction = [](float value)
 	{
 		int time = (value * (1000.0f));	
 		return juce::String(time) + "ms";
 	};
-	addAndMakeVisible(&delayTimeSlider);
-	addAndMakeVisible(delayTimeLabel);
+	delayTimeSlider.setRange(0.01f, 2.0f);
+//	delayTimeSlider.setValue(0.5f);
+	delayTimeSlider.setNumDecimalPlacesToDisplay(1);
+	if (!started)
+	{
+		addAndMakeVisible(&delayTimeSlider);
+		addAndMakeVisible(delayTimeLabel);
+	}
+	if (!AjatarDelayAudioProcessor::delayTimeSync)
+	{
+		delayTimeSlider.setVisible(true);
+	}
+	else
+	{
+		delayTimeSlider.setVisible(false);
+	}
 	delayTimeLabel.setJustificationType(Justification(36));
 	delayTimeLabel.setText("Delay Time", dontSendNotification);
-	delayTimeLabel.attachToComponent(&delayTimeSlider, false); // [4]
+	delayTimeLabel.attachToComponent(&delayTimeSlider, false); 
 
 	// tempo synced time
 	delayTimeNoteSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, DELAYTIMENOTE_ID, delayTimeNoteSlider);
-	delayTimeNoteSlider.setBounds(0, 30, 100, 100);
+	delayTimeNoteSlider.setBounds(0, 30, 90, 90);
 	delayTimeNoteSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
 	delayTimeNoteSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 20);
 	delayTimeNoteSlider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);	
 	delayTimeNoteSlider.setColour(Slider::textBoxTextColourId, Colour (0xFF2d4924));
-	delayTimeNoteSlider.setRange(0, 7);
-	delayTimeNoteSlider.setValue(3);
+	delayTimeNoteSlider.textFromValueFunction = [](int value)
+	{
+		juce::String note;
+		switch (value) {
+		case 0:
+			note = "1/1";
+			break;
+		case 1:
+			note = "1/2";
+			break;
+		case 2:
+			note = "1/3";
+			break;
+		case 3:
+			note = "1/4";
+			break;
+		case 4:
+			note = "1/5";
+			break;
+		case 5:
+			note = "1/6";
+			break;
+		case 6:
+			note = "1/8";
+			break;
+		case 7:
+			note = "1/16";
+			break;
+		}
+		return note;
+	};
+	delayTimeNoteSlider.setRange(0, 7, 1);
+//	delayTimeNoteSlider.setValue(3);
 	addAndMakeVisible(&delayTimeNoteSlider);
 	delayTimeNoteSlider.setVisible(false);
-//	addAndMakeVisible(delayTimeNoteLabel);
-//	delayTimeNoteLabel.setJustificationType(Justification(36));
-//	delayTimeNoteLabel.setText("Delay Time", dontSendNotification);
-//	delayTimeLabel.attachToComponent(&delayTimeSlider, false); // [4]
+	if (AjatarDelayAudioProcessor::delayTimeSync)
+	{
+		delayTimeNoteSlider.setVisible(true);
+		delayTimeLabel.setJustificationType(Justification(36));
+		delayTimeLabel.setText("Tempo Sync", dontSendNotification);
+		delayTimeLabel.attachToComponent(&delayTimeNoteSlider, false);
+	}
 
 	feedbackSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, FEEDBACK_ID, feedbackSlider);
-	feedbackSlider.setBounds(100, 70, 100, 100);
-	feedbackSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
-	feedbackSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 20);
-	feedbackSlider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);	
-	feedbackSlider.setColour(Slider::textBoxTextColourId, Colour (0xFF2d4924));
-	feedbackSlider.setRange(0.0f, 0.98f);
-	feedbackSlider.setValue(0.3f);
+	feedbackSlider.setBounds(100, 70, 90, 90);
 	feedbackSlider.textFromValueFunction = [](float value)
 	{
 		int feedback = (value * (100.0f));
 		return juce::String(feedback) + "%";
 	}; 
+	feedbackSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
+	feedbackSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 20);
+	feedbackSlider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);	
+	feedbackSlider.setColour(Slider::textBoxTextColourId, Colour (0xFF2d4924));
+	feedbackSlider.setRange(0.0f, 0.98f);
+//	feedbackSlider.setValue(0.3f);
 	addAndMakeVisible(&feedbackSlider);
 	addAndMakeVisible(feedbackLabel);
 	feedbackLabel.setJustificationType(Justification(36));
 	feedbackLabel.setText("Feedback", dontSendNotification);
-	feedbackLabel.attachToComponent(&feedbackSlider, false); // [4]
+	feedbackLabel.attachToComponent(&feedbackSlider, false); 
 
-	smoothSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, SMOOTH_ID, smoothSlider);
-	smoothSlider.setBounds(200, 30, 100, 100);
-	smoothSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
-	smoothSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 20);
-	smoothSlider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);	
-	smoothSlider.setColour(Slider::textBoxTextColourId, Colour (0xFF2d4924));
-	smoothSlider.textFromValueFunction = nullptr;
-	smoothSlider.setRange(0.001f, 0.01f, 0.001f);
-	smoothSlider.setValue(0.006f);
-	smoothSlider.textFromValueFunction = [](float value)
+	filterAttackSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, FILTERATTACK_ID, filterAttackSlider);
+	filterAttackSlider.setBounds(200, 30, 90, 90);
+	filterAttackSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
+	filterAttackSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 20);
+	filterAttackSlider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);	
+	filterAttackSlider.setColour(Slider::textBoxTextColourId, Colour (0xFF2d4924));
+	filterAttackSlider.textFromValueFunction = [](float value)
 	{
-		int smooth = (value * (1000.0f));
-		smooth = 11 - smooth;
-		return juce::String(smooth);
+		int filterAttack = (value * (100.0f));
+		return juce::String(filterAttack) + "%";
 	}; 
-	addAndMakeVisible(&smoothSlider);
-	addAndMakeVisible(smoothLabel);
-	smoothLabel.setText("Smooth", dontSendNotification);
-	smoothLabel.setJustificationType(Justification(36));
-	smoothLabel.attachToComponent(&smoothSlider, false); // [4]
+	filterAttackSlider.setRange(0.01f, 1.0f, 0.01f);
+//	filterAttackSlider.setValue(1.0f);
+	filterFreqSlider.setSkewFactorFromMidPoint(0.7f);
+	addAndMakeVisible(&filterAttackSlider);
+	addAndMakeVisible(filterAttackLabel);
+	filterAttackLabel.setText("Filter Attack", dontSendNotification);
+	filterAttackLabel.setJustificationType(Justification(36));
+	filterAttackLabel.attachToComponent(&filterAttackSlider, false); 
 
 	filterFreqSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, FILTERFREQ_ID, filterFreqSlider);
-	filterFreqSlider.setBounds(300, 70, 100, 100);
+	filterFreqSlider.setBounds(300, 70, 90, 90);
 	filterFreqSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
 	filterFreqSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 20);
 	filterFreqSlider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);	
 	filterFreqSlider.setColour(Slider::textBoxTextColourId, Colour (0xFF2d4924));
 	filterFreqSlider.setTextValueSuffix("Hz");
 	filterFreqSlider.setRange(50, 12000, 5);
-	filterFreqSlider.setValue(500);
+//	filterFreqSlider.setValue(500);
 	filterFreqSlider.setSkewFactorFromMidPoint(1200);
 	addAndMakeVisible(&filterFreqSlider);
 	addAndMakeVisible(filterFreqLabel);
 	filterFreqLabel.setJustificationType(Justification(36));
 	filterFreqLabel.setText("Filter Freq", dontSendNotification);
-	filterFreqLabel.attachToComponent(&filterFreqSlider, false); // [4]
+	filterFreqLabel.attachToComponent(&filterFreqSlider, false);
 
 	dryWetSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, DRYWET_ID, dryWetSlider);
-	dryWetSlider.setBounds(400, 30, 100, 100);
+	dryWetSlider.setBounds(400, 30, 90, 90);
 	dryWetSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
 	dryWetSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 20);
 	dryWetSlider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);	
 	dryWetSlider.setColour(Slider::textBoxTextColourId, Colour (0xFF2d4924));
-	dryWetSlider.setRange(0.0f, 1.0f);
-	dryWetSlider.setValue(0.5f);
 	dryWetSlider.textFromValueFunction = [](float value)
 	{
 		int dryWet = (value * (100.0f));
 		return juce::String(dryWet) + "%";
 	};
+	dryWetSlider.setRange(0.0f, 1.0f);
+//	dryWetSlider.setValue(0.5f);
 	addAndMakeVisible(&dryWetSlider);
 	addAndMakeVisible(dryWetLabel);
 	dryWetLabel.setJustificationType(Justification(36));
 	dryWetLabel.setText("Dry/Wet", dontSendNotification);
-	dryWetLabel.attachToComponent(&dryWetSlider, false); // [4]
+	dryWetLabel.attachToComponent(&dryWetSlider, false);
 
 	getLookAndFeel().setColour(Label::textColourId, Colour(0xFF2d4924));
 
@@ -157,10 +196,17 @@ void AjatarDelayAudioProcessorEditor::changeDelayTimeMode()
 	{
 		delayTimeSlider.setVisible(false);
 		delayTimeNoteSlider.setVisible(true);
+		delayTimeLabel.setJustificationType(Justification(36));
+		delayTimeLabel.setText("Tempo Sync", dontSendNotification);
+		delayTimeLabel.attachToComponent(&delayTimeNoteSlider, false);
+
 	}
 	else {
 		delayTimeSlider.setVisible(true);
 		delayTimeNoteSlider.setVisible(false);
+		delayTimeLabel.setJustificationType(Justification(36));
+		delayTimeLabel.setText("Delay Time", dontSendNotification);
+		delayTimeLabel.attachToComponent(&delayTimeSlider, false); 
 	}
 
 }
@@ -173,7 +219,6 @@ AjatarDelayAudioProcessorEditor::~AjatarDelayAudioProcessorEditor()
 //==============================================================================
 void AjatarDelayAudioProcessorEditor::paint(Graphics& g)
 {
-	// (Our component is opaque, so we must completely fill the background with a solid colour)#f9e3be
 	g.fillAll(Colour (0xffc7cb85));
 
 	g.setColour(Colour (0xFF2d4924));
@@ -184,6 +229,4 @@ void AjatarDelayAudioProcessorEditor::paint(Graphics& g)
 
 void AjatarDelayAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
 }

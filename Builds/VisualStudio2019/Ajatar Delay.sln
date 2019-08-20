@@ -1,12 +1,12 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2019
 
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AjatarDelay - VST3", "AjatarDelay_VST3.vcxproj", "{B1446874-6C7F-A22D-0366-A246FDAEFF54}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ajatar Delay - VST3", "Ajatar Delay_VST3.vcxproj", "{B1446874-6C7F-A22D-0366-A246FDAEFF54}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A1772722-249E-5B3D-D3E4-49B3D24739B0} = {A1772722-249E-5B3D-D3E4-49B3D24739B0}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AjatarDelay - Shared Code", "AjatarDelay_SharedCode.vcxproj", "{A1772722-249E-5B3D-D3E4-49B3D24739B0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ajatar Delay - Shared Code", "Ajatar Delay_SharedCode.vcxproj", "{A1772722-249E-5B3D-D3E4-49B3D24739B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

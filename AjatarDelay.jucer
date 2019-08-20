@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="gPrk2u" name="AjatarDelay" projectType="audioplug" jucerVersion="5.4.4"
-              version="0.0.2" companyName="Virvatuli" companyWebsite="myrrys.fi"
-              pluginVST3Category="Delay" pluginRTASCategory="16" pluginAAXCategory="16">
-  <MAINGROUP id="s7u7QM" name="AjatarDelay">
+<JUCERPROJECT id="gPrk2u" name="Ajatar Delay" projectType="audioplug" jucerVersion="5.4.4"
+              version="0.8.0" companyName="Myrrys" companyWebsite="myrrys.fi"
+              pluginVST3Category="Delay" pluginRTASCategory="16" pluginAAXCategory="16"
+              pluginFormats="buildVST3" companyEmail="cptnelson@protonmail.com">
+  <MAINGROUP id="s7u7QM" name="Ajatar Delay">
     <GROUP id="{23371368-77A4-9256-9C20-244948B51F71}" name="Source">
       <FILE id="OsX7c3" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
@@ -17,7 +18,7 @@
   <EXPORTFORMATS>
     <VS2019 targetFolder="Builds/VisualStudio2019">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" linkTimeOptimisation="0"/>
+        <CONFIGURATION name="Debug" isDebug="0" linkTimeOptimisation="0"/>
         <CONFIGURATION isDebug="1" name="Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
