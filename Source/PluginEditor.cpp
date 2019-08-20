@@ -124,7 +124,7 @@ AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAud
 	feedbackLabel.attachToComponent(&feedbackSlider, false); 
 
 	filterAttackSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, FILTERATTACK_ID, filterAttackSlider);
-	filterAttackSlider.setBounds(200, 30, 90, 90);
+	filterAttackSlider.setBounds(300, 30, 90, 90);
 	filterAttackSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
 	filterAttackSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 20);
 	filterAttackSlider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);	
@@ -144,7 +144,7 @@ AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAud
 	filterAttackLabel.attachToComponent(&filterAttackSlider, false); 
 
 	filterFreqSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, FILTERFREQ_ID, filterFreqSlider);
-	filterFreqSlider.setBounds(300, 70, 90, 90);
+	filterFreqSlider.setBounds(200, 70, 90, 90);
 	filterFreqSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
 	filterFreqSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 100, 20);
 	filterFreqSlider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);	
@@ -156,7 +156,7 @@ AjatarDelayAudioProcessorEditor::AjatarDelayAudioProcessorEditor (AjatarDelayAud
 	addAndMakeVisible(&filterFreqSlider);
 	addAndMakeVisible(filterFreqLabel);
 	filterFreqLabel.setJustificationType(Justification(36));
-	filterFreqLabel.setText("Filter Freq", dontSendNotification);
+	filterFreqLabel.setText("HP Filter Freq", dontSendNotification);
 	filterFreqLabel.attachToComponent(&filterFreqSlider, false);
 
 	dryWetSliderValue = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(processor.treeState, DRYWET_ID, dryWetSlider);

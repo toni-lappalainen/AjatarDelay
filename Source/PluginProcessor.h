@@ -103,8 +103,11 @@ private:
 	// filters
 	std::unique_ptr<IIRFilter> mFilterHPLeft;
 	std::unique_ptr<IIRFilter> mFilterHPRight;
+	std::unique_ptr<IIRFilter> mFilterLPLeft;
+	std::unique_ptr<IIRFilter> mFilterLPRight;
 
 	int mFilterHPFreq{ 500 };
+	int mFilterLPFreq{ 14000 };
 
 
 public:

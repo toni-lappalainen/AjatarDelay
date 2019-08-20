@@ -70,9 +70,14 @@ void AjatarDelayAudioProcessor::prepareToPlay(double sampleRate, int samplesPerB
 
 	// Filters
 	mFilterHPLeft = std::make_unique<IIRFilter>(); 
-	mFilterHPLeft->setCoefficients(IIRCoefficients::makeHighPass(sampleRate, *treeState.getRawParameterValue(FILTERFREQ_ID), 1.0));
+	mFilterHPLeft->setCoefficients(IIRCoefficients::makeHighPass(sampleRate, *treeState.getRawParameterValue(FILTERFREQ_ID), 0.5));
 	mFilterHPRight = std::make_unique<IIRFilter>(); 
-	mFilterHPRight->setCoefficients(IIRCoefficients::makeHighPass(sampleRate, *treeState.getRawParameterValue(FILTERFREQ_ID), 1.0));
+	mFilterHPRight->setCoefficients(IIRCoefficients::makeHighPass(sampleRate, *treeState.getRawParameterValue(FILTERFREQ_ID), 0.5));
+	
+	mFilterLPLeft = std::make_unique<IIRFilter>(); 
+	mFilterLPLeft->setCoefficients(IIRCoefficients::makeLowPass(sampleRate, mFilterLPFreq, 0.5));
+	mFilterLPRight = std::make_unique<IIRFilter>(); 
+	mFilterLPRight->setCoefficients(IIRCoefficients::makeLowPass(sampleRate, mFilterLPFreq, 0.5));
 }
 
 
@@ -145,6 +150,8 @@ void AjatarDelayAudioProcessor::writeDelay(AudioBuffer<float>& buffer, int sampl
 
 	mFilterHPLeft->processSamples(samplePointerL, 1);
 	mFilterHPRight->processSamples(samplePointerR, 1);
+	mFilterLPLeft->processSamples(samplePointerL, 1);
+	mFilterLPRight->processSamples(samplePointerR, 1);
 
 	// set the feedbacks to interpolated float * feedbackValue
 	mFeedBackLeft = interpolatedSampleLeft * feedbackValue;
